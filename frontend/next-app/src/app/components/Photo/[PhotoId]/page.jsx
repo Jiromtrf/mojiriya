@@ -17,13 +17,18 @@ const Photo = () => {
   <div className="chat-header">
     パパ
   </div>
-  <div className="chat-bubble  chat-bubble-accent">モカの表情がいいね！すごく楽しそう！</div>
+  <div className="chat-bubble  chat-bubble-accent w-72">モカの表情がいいね！すごく楽しそう！</div>
 </div>
 <div className="chat chat-start">
   <div className="chat-header">
     葵
   </div>
-  <div className="chat-bubble  chat-bubble-accent">今日は公園に寄って、モカとたくさん走ったよ！</div>
+  <div className="chat-bubble  chat-bubble-accent w-72">今日は公園に寄って、モカとたくさん走ったよ！</div>
+</div>
+
+<div class="flex flex-row space-x-4 my-6">
+<input type="text" placeholder="コメントを追加" className="input input-bordered w-60" />
+<button class="btn btn-primary">送信</button>
 </div>
 
 <button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
