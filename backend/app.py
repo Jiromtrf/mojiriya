@@ -7,8 +7,10 @@ from sqlalchemy.orm import Session
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
-from flask import send_from_directory
-from db_control import mymodels
+from sqlalchemy.exc import SQLAlchemyError 
+from db_control.mymodels import Photo, Base 
+from flask_sqlalchemy import SQLAlchemy
+import base64 
 
 # Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
@@ -90,16 +92,9 @@ def register_pet():
         # プロフィール画像の処理
         file = request.files.get("profile_image")
         if file:
-            # 'uploads'ディレクトリが存在するか確認、なければ作成
-            if not os.path.exists("uploads"):
-                os.makedirs("uploads")
-
             filename = secure_filename(file.filename)
             file_path = os.path.join("uploads", filename)
             file.save(file_path)
-
-            # パスの区切り文字を変換してデータベースに保存
-            file_path = file_path.replace("\\", "/")
         else:
             file_path = None
 
@@ -108,60 +103,86 @@ def register_pet():
         
         return jsonify({"message": "ペット情報が登録されました。"})
     except Exception as e:
-        print(f"Error: {str(e)}")  # エラーをコンソールに出力
+        print(f"Error: {str(e)}")  # コンソールにエラーメッセージを表示
         return jsonify({"error": str(e)}), 500
-
-
-@app.route("/get-pets", methods=["GET"])
-def get_pets():
+    
+# データベースセッションを取得するための関数
+def get_db():
+    db = SessionLocal()
     try:
-        user_id = request.args.get("user_id")
-        db = next(get_db())
-        pets = crud.get_pets_by_user_id(db, user_id=user_id)
-        return jsonify([{"name": pet.name, "profile_image": pet.profile_image} for pet in pets])
-    except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        yield db
+    finally:
+        db.close()
 
-# 'uploads'ディレクトリからファイルを提供するルート
-@app.route('/uploads/<filename>')
-def uploaded_file(filename):
-    return send_from_directory('uploads', filename)
+#アルバムアップロード用エンドポイント
+@app.route('/photo_upload', methods=['POST'])
+def photo_upload():
+    db = next(get_db())  # データベースセッションを取得
 
-@app.route("/save-eat-record", methods=["POST"])
-def save_eat_record():
+    if 'photo' not in request.files:
+        app.logger.error('No file part in request')
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['photo']
+
+    if file.filename == '':
+        app.logger.error('No selected file')
+        return jsonify({'error': 'No selected file'}), 400
+
     try:
-        user_id = request.form.get("user_id")
-        
-        # ペットIDを取得
-        db = next(get_db())
-        pet = db.query(mymodels.Pet).filter(mymodels.Pet.owner_id == user_id).first()
-        if not pet:
-            return jsonify({"error": "ペットが見つかりませんでした"}), 400
-        
-        pet_id = pet.id
-        date = request.form.get("date")
-        amount = request.form.get("amount")
+        # バイナリデータとしてファイルを読み込む
+        photo_data = file.read()
 
-        # 写真の処理
-        file = request.files.get("photo")
-        if file:
-            if not os.path.exists("uploads"):
-                os.makedirs("uploads")
-            filename = secure_filename(file.filename)
-            file_path = os.path.join("uploads", filename)
-            file.save(file_path)
-            file_path = file_path.replace("\\", "/")
-        else:
-            file_path = None
+        # Photoモデルを使ってデータベースに保存
+        new_photo = Photo(photo_data=photo_data)
+        db.add(new_photo)
+        db.commit()
 
-        record = crud.create_eat_record(db, pet_id=pet_id, date=date, amount=amount, photo=file_path)
-        
-        return jsonify({"message": "記録が保存されました。"})
+        app.logger.info('Photo uploaded successfully')
+        return jsonify({'message': 'Photo uploaded successfully'}), 200
+    except SQLAlchemyError as e:
+        db.rollback()
+        app.logger.error(f'Error during photo upload: {str(e)}')
+        return jsonify({'error': f'Error during photo upload: {str(e)}'}), 500
+    finally:
+        db.close()
+
+# アルバム表示用エンドポイント
+@app.route('/api/photos', methods=['GET'])
+def get_photos():
+    db = next(get_db())
+    try:
+        # Session オブジェクトを使ってデータを取得
+        photos = db.query(Photo).all()
+        photo_list = []
+        for photo in photos:
+            # バイナリデータをBase64エンコード
+            photo_data = base64.b64encode(photo.photo_data).decode('utf-8')
+            photo_list.append({
+                'photo_id': photo.photo_id,
+                'upload_date': photo.upload_date,
+                'photo_data': f'data:image/jpeg;base64,{photo_data}'
+            })
+        return jsonify({'photos': photo_list})
     except Exception as e:
-        print(f"Error: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
+    finally:
+        db.close()
 
+@app.route('/test-photos', methods=['GET'])
+def test_photos():
+    db = next(get_db())
+    try:
+        # すべての画像データを取得
+        photos = db.query(Photo).all()
+        # 取得した写真データのログ出力
+        for photo in photos:
+            print(f'Photo ID: {photo.photo_id}, Upload Date: {photo.upload_date}, Photo Data Length: {len(photo.photo_data)}')
+        return jsonify({'message': 'Check console for photo data details'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        db.close()
 
 
 if __name__ == "__main__":
