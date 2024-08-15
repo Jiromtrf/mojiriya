@@ -50,6 +50,7 @@
 
 .input-field {
   width: 100%;
+  max-width: 400px;
   padding: 10px;
   margin-bottom: 15px;
   border-radius: 5px;
@@ -57,10 +58,11 @@
 }
 
 .button {
-  width: 100%;
+  width: 80%; /* 他のボタンと同じ幅に設定 */
+  max-width: 340px; /* 他のボタンと同じ最大幅に設定 */
   padding: 10px;
   background-color: #FFD700;
-  color: white;
+  color: black;
   border: none;
   border-radius: 20px;
   font-size: 1rem;
@@ -75,11 +77,12 @@
   padding: 10px;
   margin-top: 10px;
   background-color: #FFD700;
-  color: white;
+  color: black;
   border: none;
   border-radius: 5px;
   font-size: 16px;
   text-align: center;
   text-decoration: none; /* リンクの下線を削除 */
+  border-radius: 20px;
 }
 

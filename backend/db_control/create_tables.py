@@ -1,6 +1,6 @@
 # create_tables.pyの修正
-from mymodels import Base
-from connect import engine
+from db_control.mymodels import Base
+from .connect import engine
 
 # テーブルを強制的に削除
 print("Dropping existing tables >>>")

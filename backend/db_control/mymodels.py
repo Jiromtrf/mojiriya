@@ -1,23 +1,39 @@
-from sqlalchemy import ForeignKey
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from datetime import date
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-class Base(DeclarativeBase):
-    pass
+# ベースクラスの作成
+Base = declarative_base()
 
+# ユーザーテーブル
 class User(Base):
-    __tablename__ = 'users'
-    user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    nickname: Mapped[str] = mapped_column()
-    email: Mapped[str] = mapped_column(unique=True)
-    password: Mapped[str] = mapped_column()
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True)
+    hashed_password = Column(String)
+    nickname = Column(String)
+    pets = relationship("Pet", back_populates="owner")
 
+# ペットテーブル
 class Pet(Base):
-    __tablename__ = 'pets'
-    pet_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
-    name: Mapped[str] = mapped_column()
-    gender: Mapped[str] = mapped_column()
-    breed: Mapped[str] = mapped_column()
-    birthdate: Mapped[date] = mapped_column()
-    photo: Mapped[str] = mapped_column()  # 追加: 写真のパスを保存するカラム
-    user_id: Mapped[int] = mapped_column(ForeignKey('users.user_id'))
+    __tablename__ = "pets"
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    gender = Column(String)  # 性別
+    species = Column(String)  # 種類
+    birthdate = Column(String)  # 生年月日
+    profile_image = Column(String)  # プロフィール画像のパス
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    records = relationship("Record", back_populates="pet")
+    owner = relationship("User", back_populates="pets")
+
+
+# 記録テーブル
+class Record(Base):
+    __tablename__ = "records"
+    id = Column(Integer, primary_key=True, index=True)
+    date = Column(DateTime)
+    text = Column(String)
+    photo_url = Column(String)
+    pet_id = Column(Integer, ForeignKey("pets.id"))
+    pet = relationship("Pet", back_populates="records")

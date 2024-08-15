@@ -1,83 +1,107 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
+from db_control.create_tables import *
+from db_control.connect import SessionLocal  # ここでimport
+from db_control import crud
+import hashlib
+from sqlalchemy.orm import Session
 from flask_cors import CORS
-from db_control.crud import create_user, create_pet
-import db_control.mymodels
-from werkzeug.security import check_password_hash
-
-from datetime import datetime
-import os
 from werkzeug.utils import secure_filename
-from db_control.mymodels import User
-from db_control import db
+import os
 
+# Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')  # .envからSECRET_KEYを取得
 CORS(app)
 
-# アップロードフォルダの絶対パスを設定
-UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# データベースセッションの作成
+def get_db() -> Session:  # 型アノテーションを追加
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
+# ルーティング（例：ホームページ）
 @app.route("/")
-def index():
-    return "<p>Flask top page!</p>"
+def home():
+    return "Welcome to PawJourney!"
 
-@app.route("/user-register", methods=['POST'])
+# ユーザー登録エンドポイント
+@app.route("/register", methods=["POST"])
 def register_user():
-    values = request.get_json()
-    create_user(values)
-    return jsonify({"message": "User registered successfully!"}), 201
+    try:
+        data = request.json
+        email = data.get("email")
+        password = data.get("password")
+        nickname = data.get("nickname")
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        
+        db = next(get_db())
+        
+        # 既にメールアドレスが存在するかチェック
+        existing_user = crud.get_user_by_email(db, email=email)
+        if existing_user:
+            return jsonify({"error": "このメールアドレスは既に登録されています。"}), 400
+        
+        user = crud.create_user(db, email=email, hashed_password=hashed_password, nickname=nickname)
+        
+        return jsonify({"id": user.id, "email": user.email})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-@app.route("/login", methods=['POST'])
-def login():
-    email = request.json.get('email')
-    password = request.json.get('password')
+
+
+# ユーザーログインエンドポイント
+@app.route("/login", methods=["POST"])
+def login_user():
+    data = request.json
+    email = data.get("email")
+    password = data.get("password")
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
     
-    # データベースからユーザーを取得
-    user = db.session.query(User).filter_by(email=email).first()
+    db = next(get_db())
+    user = crud.get_user_by_email(db, email=email)
     
-    if user and check_password_hash(user.password, password):
-        session['user_id'] = user.user_id  # セッションにユーザーIDを保存
-        return jsonify({"message": "Login successful", "user_id": user.user_id}), 200
+    if user and user.hashed_password == hashed_password:
+        return jsonify({"message": "Login successful", "user_id": user.id})
     else:
         return jsonify({"message": "Invalid credentials"}), 401
-
-@app.route("/pet-register", methods=['POST'])
-def register_pet():
-    if 'user_id' not in session:
-        return jsonify({"message": "Unauthorized"}), 401
-
-    user_id = session['user_id']
-    name = request.form.get('name')
-    gender = request.form.get('gender')
-    breed = request.form.get('breed')
-    birthdate_str = request.form.get('birthdate')
     
-    if birthdate_str:
-        birthdate = datetime.strptime(birthdate_str, "%Y-%m-%d").date()
-    else:
-        birthdate = None
+@app.route("/test-db", methods=["GET"])
+def test_db():
+    db = next(get_db())
+    try:
+        # ここではユーザーがデータベースに存在するかを確認します
+        users = crud.get_users(db)
+        return jsonify([{"id": user.id, "email": user.email} for user in users])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route("/register-pet", methods=["POST"])
+def register_pet():
+    try:
+        user_id = request.form.get("user_id")
+        name = request.form.get("name")
+        gender = request.form.get("gender")
+        species = request.form.get("species")
+        birthdate = request.form.get("birthdate")
 
-    photo = request.files['photo']
+        # プロフィール画像の処理
+        file = request.files.get("profile_image")
+        if file:
+            filename = secure_filename(file.filename)
+            file_path = os.path.join("uploads", filename)
+            file.save(file_path)
+        else:
+            file_path = None
 
-    if photo:
-        filename = secure_filename(photo.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        photo.save(filepath)
-    else:
-        filepath = None
+        db = next(get_db())
+        pet = crud.create_pet(db, name=name, owner_id=user_id, gender=gender, species=species, birthdate=birthdate, profile_image=file_path)
+        
+        return jsonify({"message": "ペット情報が登録されました。"})
+    except Exception as e:
+        print(f"Error: {str(e)}")  # コンソールにエラーメッセージを表示
+        return jsonify({"error": str(e)}), 500
 
-    values = {
-        'name': name,
-        'gender': gender,
-        'breed': breed,
-        'birthdate': birthdate,
-        'photo': filepath,
-        'user_id': user_id  # セッションから取得したuser_idを使う
-    }
 
-    create_pet(values)
-    return jsonify({"message": "Pet registered successfully!"}), 201
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
