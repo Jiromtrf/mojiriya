@@ -1,6 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from datetime import datetime, timezone
 
 # ベースクラスの作成
 Base = declarative_base()
@@ -28,12 +29,14 @@ class Pet(Base):
     owner = relationship("User", back_populates="pets")
 
 
-# 記録テーブル
+# ごはん記録テーブル
 class Record(Base):
-    __tablename__ = "records"
+    __tablename__ = 'records'
+
     id = Column(Integer, primary_key=True, index=True)
-    date = Column(DateTime)
+    pet_id = Column(Integer, ForeignKey('pets.id'))
+    date = Column(DateTime, default=lambda: datetime.now(timezone.utc))  # タイムゾーンを含む現在時刻
     text = Column(String)
     photo_url = Column(String)
-    pet_id = Column(Integer, ForeignKey("pets.id"))
+    
     pet = relationship("Pet", back_populates="records")

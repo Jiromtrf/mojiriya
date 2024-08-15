@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
+from flask import send_from_directory
+from db_control import mymodels
 
 # Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
@@ -88,9 +90,16 @@ def register_pet():
         # プロフィール画像の処理
         file = request.files.get("profile_image")
         if file:
+            # 'uploads'ディレクトリが存在するか確認、なければ作成
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+
             filename = secure_filename(file.filename)
             file_path = os.path.join("uploads", filename)
             file.save(file_path)
+
+            # パスの区切り文字を変換してデータベースに保存
+            file_path = file_path.replace("\\", "/")
         else:
             file_path = None
 
@@ -99,8 +108,60 @@ def register_pet():
         
         return jsonify({"message": "ペット情報が登録されました。"})
     except Exception as e:
-        print(f"Error: {str(e)}")  # コンソールにエラーメッセージを表示
+        print(f"Error: {str(e)}")  # エラーをコンソールに出力
         return jsonify({"error": str(e)}), 500
+
+
+@app.route("/get-pets", methods=["GET"])
+def get_pets():
+    try:
+        user_id = request.args.get("user_id")
+        db = next(get_db())
+        pets = crud.get_pets_by_user_id(db, user_id=user_id)
+        return jsonify([{"name": pet.name, "profile_image": pet.profile_image} for pet in pets])
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# 'uploads'ディレクトリからファイルを提供するルート
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory('uploads', filename)
+
+@app.route("/save-eat-record", methods=["POST"])
+def save_eat_record():
+    try:
+        user_id = request.form.get("user_id")
+        
+        # ペットIDを取得
+        db = next(get_db())
+        pet = db.query(mymodels.Pet).filter(mymodels.Pet.owner_id == user_id).first()
+        if not pet:
+            return jsonify({"error": "ペットが見つかりませんでした"}), 400
+        
+        pet_id = pet.id
+        date = request.form.get("date")
+        amount = request.form.get("amount")
+
+        # 写真の処理
+        file = request.files.get("photo")
+        if file:
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+            filename = secure_filename(file.filename)
+            file_path = os.path.join("uploads", filename)
+            file.save(file_path)
+            file_path = file_path.replace("\\", "/")
+        else:
+            file_path = None
+
+        record = crud.create_eat_record(db, pet_id=pet_id, date=date, amount=amount, photo=file_path)
+        
+        return jsonify({"message": "記録が保存されました。"})
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == "__main__":

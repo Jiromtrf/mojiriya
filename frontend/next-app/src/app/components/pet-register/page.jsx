@@ -47,7 +47,7 @@ export default function RegisterPet() {
         if (response.data.message) {
           setMessage(response.data.message);
           setTimeout(() => {
-            router.push('/components/home/page');
+            router.push('/components/MyDogTop');
           }, 2000);
         } else {
           setMessage('登録に失敗しました。再度お試しください。');
