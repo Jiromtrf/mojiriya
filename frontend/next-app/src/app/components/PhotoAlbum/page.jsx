@@ -35,11 +35,13 @@ const PhotoAlbum = () => {
         <div className="h-56 grid grid-cols-2 gap-4 content-start">
           {photos.map((photo, index) => (
             <div key={index} className="w-40 shadow-xl mt-8">
-              <img
-                src={photo.photo_data} // Base64 データ URL を使用
-                alt={`写真 ${index}`}
-                className="w-full h-full object-cover"
-              />
+              <Link href={`/components/Photo/PhotoId`}>    {/* 発表用で固定ページ遷移 */}
+                <img
+                  src={photo.photo_data} // Base64 データ URL を使用
+                  alt={`写真 ${index}`}
+                  className="w-full h-full object-cover cursor-pointer"
+                />
+              </Link>
             </div>
           ))}
         </div>
