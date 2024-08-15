@@ -1,7 +1,8 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
-from datetime import datetime, timezone
+from datetime import datetime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, LargeBinary
 
 # ベースクラスの作成
 Base = declarative_base()
@@ -29,14 +30,19 @@ class Pet(Base):
     owner = relationship("User", back_populates="pets")
 
 
-# ごはん記録テーブル
+# 記録テーブル
 class Record(Base):
-    __tablename__ = 'records'
-
+    __tablename__ = "records"
     id = Column(Integer, primary_key=True, index=True)
-    pet_id = Column(Integer, ForeignKey('pets.id'))
-    date = Column(DateTime, default=lambda: datetime.now(timezone.utc))  # タイムゾーンを含む現在時刻
+    date = Column(DateTime)
     text = Column(String)
     photo_url = Column(String)
-    
+    pet_id = Column(Integer, ForeignKey("pets.id"))
     pet = relationship("Pet", back_populates="records")
+
+# フォトテーブル
+class Photo(Base):
+    __tablename__ = 'photos'
+    photo_id = Column(Integer, primary_key=True)
+    upload_date = Column(String, default=lambda: datetime.now().strftime('%Y-%m-%d %H:%M'))
+    photo_data = Column(LargeBinary)  # 画像データをバイナリ形式で保存
