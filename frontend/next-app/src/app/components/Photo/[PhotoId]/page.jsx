@@ -1,5 +1,6 @@
 import React from 'react'
 import Image from "next/image";
+import Link from 'next/link';
 
 const Photo = () => {
   return (
@@ -31,7 +32,9 @@ const Photo = () => {
 <button class="btn btn-primary">送信</button>
 </div>
 
-<button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
+<Link href ='/components/MyDogTop'>
+  <button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
+</Link>
 
     </div>
   )
