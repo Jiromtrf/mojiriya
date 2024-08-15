@@ -1,6 +1,21 @@
-import React from 'react'
+'use client';
 
-const DogCheck = () => {
+import React from 'react'
+import { useRouter } from 'next/navigation';
+
+export default function MyDogTop() {
+  const router = useRouter(); // useRouterを使ってrouterを取得
+
+  
+const handleConsideringDogTopButtonClick = () => {
+  router.push('/components/ConsideringDogTop');  // ボタンをクリックしたときに遷移する
+};
+
+const handlepetmiButtonClick = () => {
+  window.open('https://petmi.jp/', '_blank'); 
+};
+
+
   return (
     <div>
     <div class="flex flex-col justify-center items-center gap-2">
@@ -64,20 +79,19 @@ const DogCheck = () => {
 </div>
 
 <h1 class="text-2xl mt-12">ペットショップで探す</h1>
-<button class="btn btn-wide bg-yellow-400 rounded-full my-4">petmiへ移動</button>
+<button class="btn btn-wide bg-yellow-400 rounded-full my-4" onClick={handlepetmiButtonClick}>petmiへ移動</button>
 
 
 <div class="container w-64 flex flex-col justify-center items-center px-4">
-            <div class="flex flex-row space-x-6 mb-8">
+            <div class="flex flex-row space-x-6 mb-5">
                 <p class="text-xs">ここから先は外部サイトへ移動します. ウェブサイト利用規約については、移動先サイトの方針に従うものとします。</p>
              </div>
       </div>
 
-      <button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
+      <button class="btn btn-ghost my-5  rounded-full" onClick={handleConsideringDogTopButtonClick}>戻る</button>
 
     </div>
     </div>
   )
 }
 
-export default DogCheck

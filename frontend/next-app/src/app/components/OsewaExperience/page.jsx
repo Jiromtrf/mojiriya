@@ -1,6 +1,17 @@
-import React from 'react'
+'use client';
 
-const OsewaExperience = () => {
+import React from 'react'
+import { useRouter } from 'next/navigation';
+
+export default function MyDogTop() {
+  const router = useRouter(); // useRouterを使ってrouterを取得
+
+  
+const handleConsideringDogTopBackButtonClick = () => {
+  router.push('/components/ConsideringDogTop');  // ボタンをクリックしたときに遷移する
+};
+
+
   return (
     <div>
     <div class="flex flex-col justify-center items-center gap-4">
@@ -15,11 +26,9 @@ const OsewaExperience = () => {
 
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-10">体験する</button>
 
-      <button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
+      <button class="btn btn-ghost my-2 mt-5 rounded-full" onClick={handleConsideringDogTopBackButtonClick}>戻る</button>
       
     </div>
     </div>
   )
 }
-
-export default OsewaExperience
