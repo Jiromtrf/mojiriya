@@ -96,9 +96,16 @@ def register_pet():
         # プロフィール画像の処理
         file = request.files.get("profile_image")
         if file:
+            # 'uploads'ディレクトリが存在するか確認、なければ作成
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+
             filename = secure_filename(file.filename)
             file_path = os.path.join("uploads", filename)
             file.save(file_path)
+
+            # パスの区切り文字を変換してデータベースに保存
+            file_path = file_path.replace("\\", "/")
         else:
             file_path = None
 
@@ -107,7 +114,7 @@ def register_pet():
         
         return jsonify({"message": "ペット情報が登録されました。"})
     except Exception as e:
-        print(f"Error: {str(e)}")  # コンソールにエラーメッセージを表示
+        print(f"Error: {str(e)}")  # エラーをコンソールに出力
         return jsonify({"error": str(e)}), 500
     
 # データベースセッションを取得するための関数
