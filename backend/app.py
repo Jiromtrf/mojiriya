@@ -8,9 +8,13 @@ from flask_cors import CORS
 from werkzeug.utils import secure_filename
 import os
 from sqlalchemy.exc import SQLAlchemyError 
-from db_control.mymodels import Photo, Base 
+from db_control import mymodels
+from db_control.mymodels import Photo, Base, Record, SanpoRecord
 from flask_sqlalchemy import SQLAlchemy
 import base64 
+from sqlalchemy import func
+from datetime import datetime
+from flask import send_from_directory
 
 # Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
@@ -183,6 +187,143 @@ def test_photos():
         return jsonify({'error': str(e)}), 500
     finally:
         db.close()
+
+@app.route("/get-pets", methods=["GET"])
+def get_pets():
+    try:
+        user_id = request.args.get("user_id")
+        db = next(get_db())
+        pets = crud.get_pets_by_user_id(db, user_id=user_id)
+        return jsonify([{"name": pet.name, "profile_image": pet.profile_image} for pet in pets])
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# 'uploads'ディレクトリからファイルを提供するルート
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    return send_from_directory('uploads', filename)
+
+@app.route("/save-eat-record", methods=["POST"])
+def save_eat_record():
+    try:
+        user_id = request.form.get("user_id")
+        
+        # ペットIDを取得
+        db = next(get_db())
+        user = db.query(mymodels.User).filter(mymodels.User.id == user_id).first()  # ユーザーを取得
+        pet = db.query(mymodels.Pet).filter(mymodels.Pet.owner_id == user_id).first()
+        if not pet:
+            return jsonify({"error": "ペットが見つかりませんでした"}), 400
+        
+        pet_id = pet.id
+        date = request.form.get("date")
+        amount = request.form.get("amount")
+
+        # 写真の処理
+        file = request.files.get("photo")
+        if file:
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+            filename = secure_filename(file.filename)
+            file_path = os.path.join("uploads", filename)
+            file.save(file_path)
+            file_path = file_path.replace("\\", "/")
+        else:
+            file_path = None
+
+        record = crud.create_eat_record(db, pet_id=pet_id, date=date, amount=amount, photo=file_path)
+        
+        return jsonify({
+            "message": "記録が保存されました。",
+            "username": user.nickname,  # ユーザー名を追加
+            "activity": "ごはん"  # アクティビティの種類を追加
+        })
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+    
+@app.route('/get-eat-records', methods=['GET'])
+def get_eat_records():
+    user_id = request.args.get('user_id')
+    date = request.args.get('date')
+    db: Session = next(get_db())
+    
+    # 日付部分のみでフィルタリング
+    records = db.query(Record).filter(
+        func.date(Record.date) == date, 
+        Record.pet_id == user_id
+    ).all()
+
+    return jsonify([
+        {
+            'id': record.id,
+            'time': record.date.strftime('%H:%M'),
+            'amount': record.text,
+            'photo_url': record.photo_url
+        } for record in records
+    ])
+
+@app.route('/save-sanpo-record', methods=['POST'])
+def save_sanpo_record():
+    try:
+        user_id = request.form.get("user_id")
+        
+        # ペットIDを取得
+        db = next(get_db())
+        user = db.query(mymodels.User).filter(mymodels.User.id == user_id).first()  # ユーザーを取得
+        pet = db.query(mymodels.Pet).filter(mymodels.Pet.owner_id == user_id).first()
+        if not pet:
+            return jsonify({"error": "ペットが見つかりませんでした"}), 400
+        
+        pet_id = pet.id
+        date = request.form.get("date")
+        duration = request.form.get("duration")
+
+        # 写真の処理
+        file = request.files.get("photo")
+        if file:
+            if not os.path.exists("uploads"):
+                os.makedirs("uploads")
+            filename = secure_filename(file.filename)
+            file_path = os.path.join("uploads", filename)
+            file.save(file_path)
+            file_path = file_path.replace("\\", "/")
+        else:
+            file_path = None
+
+        record = crud.create_sanpo_record(db, pet_id=pet_id, date=date, duration=duration, photo=file_path)
+        
+        return jsonify({
+            "message": "記録が保存されました。",
+            "username": user.nickname,
+            "activity": "お散歩"
+            })
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/get-sanpo-records', methods=['GET'])
+def get_sanpo_records():
+    user_id = request.args.get('user_id')
+    date = request.args.get('date')
+    db: Session = next(get_db())
+    
+    records = db.query(SanpoRecord).filter(
+        func.date(SanpoRecord.date) == date, 
+        SanpoRecord.pet_id == user_id
+    ).all()
+
+    return jsonify([
+        {
+            'id': record.id,
+            'time': record.date.strftime('%H:%M'),
+            'duration': record.duration,  # さんぽ時間を取得
+            'photo_url': record.photo_url
+        } for record in records
+    ])
 
 
 if __name__ == "__main__":
