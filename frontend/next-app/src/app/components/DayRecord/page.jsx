@@ -1,38 +1,81 @@
-import React from 'react'
+"use client";
 
-const DayRecord = () => {
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+import axios from 'axios';
+
+export default function DayRecord() {
+  const searchParams = useSearchParams();
+  const date = searchParams.get('date');
+  const [eatRecords, setEatRecords] = useState([]);
+  const [sanpoRecords, setSanpoRecords] = useState([]);
+
+  useEffect(() => {
+    const userId = localStorage.getItem('userId');
+    axios.get(`http://127.0.0.1:5000/get-eat-records`, {
+      params: { user_id: userId, date }
+    })
+    .then(response => {
+      setEatRecords(response.data);
+    })
+    .catch(error => {
+      console.error('ごはんの記録の取得に失敗しました:', error);
+    });
+
+    axios.get(`http://127.0.0.1:5000/get-sanpo-records`, {
+      params: { user_id: userId, date }
+    })
+    .then(response => {
+      setSanpoRecords(response.data);
+    })
+    .catch(error => {
+      console.error('さんぽの記録の取得に失敗しました:', error);
+    });
+  }, [date]);
+
   return (
-    <div class="flex flex-col justify-center items-center gap-4">
-    
-      <h1 class="text-2xl mt-12">2024年8月12日</h1> 
-      <div class="container mx-auto flex flex-col justify-center items-center px-4">
-        <h2 class="text-xl mt-5 font-bold">さんぽ</h2>
-            <div class="flex flex-row space-x-6 mt-2">
-                <p class="text-lg">10:00</p>
-                <p class="text-lg">30分</p>
-            </div>
-            <div class="flex flex-row space-x-6 mt-2">
-                 <p class="text-lg">21:00</p>
-                <p class="text-lg">40分</p>
-             </div>
-      </div>
+    <div className="flex flex-col items-center">
+      <h1 className="text-2xl py-12">{date}</h1>
 
-      <div class="container mx-auto flex flex-col justify-center items-center px-4">
-        <h2 class="text-xl mt-5 font-bold">ごはん</h2>
-            <div class="flex flex-row space-x-6 mt-2">
-                <p class="text-lg">7:00</p>
-                <p class="text-lg">完食</p>
+      <h2 className="text-xl py-4">さんぽ</h2>
+      {sanpoRecords.map(record => (
+        <div key={record.id} className="record-container mb-6 p-4 border border-gray-300 rounded-lg w-64">
+          <div className="flex justify-between mb-2">
+            <span>{record.time}</span>
+            <span>{record.duration}分</span>
+          </div>
+          {record.photo_url && (
+            <div className="mt-2">
+              <img 
+                src={`http://127.0.0.1:5000/${record.photo_url}`} 
+                alt="さんぽの写真" 
+                className="w-full h-auto object-cover" 
+              />
             </div>
-            <div class="flex flex-row space-x-6 mt-2">
-                 <p class="text-lg">19:00</p>
-                <p class="text-lg">完食</p>
-             </div>
-      </div>
+          )}
+        </div>
+      ))}
 
-      <button class="btn btn-ghost my-2 mt-5 rounded-full">戻る</button>
-      
+      <h2 className="text-xl py-4">ごはん</h2>
+      {eatRecords.map(record => (
+        <div key={record.id} className="record-container mb-6 p-4 border border-gray-300 rounded-lg w-64">
+          <div className="flex justify-between mb-2">
+            <span>{record.time}</span>
+            <span>{record.amount}</span>
+          </div>
+          {record.photo_url && (
+            <div className="mt-2">
+              <img 
+                src={`http://127.0.0.1:5000/${record.photo_url}`} 
+                alt="食べた量の写真" 
+                className="w-full h-auto object-cover" 
+              />
+            </div>
+          )}
+        </div>
+      ))}
+
+      <button className="btn btn-outline mt-4" onClick={() => window.history.back()}>戻る</button>
     </div>
-  )
-} 
-
-export default DayRecord
+  );
+}

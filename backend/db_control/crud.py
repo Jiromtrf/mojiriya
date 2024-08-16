@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 from . import mymodels
+from datetime import datetime
 
 # ユーザーの作成
 def create_user(db: Session, email: str, hashed_password: str, nickname: str):
@@ -23,15 +24,19 @@ def create_pet(db: Session, name: str, owner_id: int, gender: str, species: str,
     db_pet = mymodels.Pet(
         name=name,
         owner_id=owner_id,
-        gender=gender,
-        species=species,
-        birthdate=birthdate,
-        profile_image=profile_image
+        gender=gender,  # 新しい引数を追加
+        species=species,  # 新しい引数を追加
+        birthdate=birthdate,  # 新しい引数を追加
+        profile_image=profile_image  # 新しい引数を追加
     )
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
     return db_pet
+
+def get_pets_by_user_id(db: Session, user_id: int):
+    return db.query(mymodels.Pet).filter(mymodels.Pet.owner_id == user_id).all()
+
 
 
 # ペットの取得
@@ -49,6 +54,30 @@ def create_record(db: Session, pet_id: int, date, text: str, photo_url: str):
 # ペットの記録を取得
 def get_records(db: Session, pet_id: int):
     return db.query(mymodels.Record).filter(mymodels.Record.pet_id == pet_id).all()
+
+def create_eat_record(db: Session, pet_id: int, date: str, amount: str, photo: str):
+    db_record = mymodels.Record(
+        pet_id=pet_id,
+        date=datetime.strptime(date, '%Y-%m-%dT%H:%M'),  # 分単位で日時を保存
+        text=amount,
+        photo_url=photo
+    )
+    db.add(db_record)
+    db.commit()
+    db.refresh(db_record)
+    return db_record
+
+def create_sanpo_record(db: Session, pet_id: int, date: str, duration: str, photo: str):
+    db_record = mymodels.SanpoRecord(
+        pet_id=pet_id,
+        date=datetime.strptime(date, '%Y-%m-%dT%H:%M'),  # 分単位で日時を保存
+        duration=duration,
+        photo_url=photo
+    )
+    db.add(db_record)
+    db.commit()
+    db.refresh(db_record)
+    return db_record
 
 # アルバムの作成
 def create_photo(db: Session, upload_date: str, photo_data: bytes):
