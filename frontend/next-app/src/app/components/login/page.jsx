@@ -40,12 +40,13 @@ export default function Login() {
   
 
     return (
-        <div className="container">
+        <div className="flex flex-col justify-center items-center gap-4">
             <div className="logo">
                 <Image src="/logo.png" alt="Logo" width={200} height={150} />
             </div>
             <h1 className="title">paw journey</h1>
             <form onSubmit={handleSubmit}>
+            <label className="form-control w-full max-w-64 mt-4">
                 <input
                     type="email"
                     className="input-field"
@@ -62,9 +63,10 @@ export default function Login() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                 />
-                <button type="submit" className="button">ログイン</button>
+            </label>
+                <button type="submit" className="btn btn-wide bg-yellow-400 rounded-full mt-6">ログイン</button>
             </form>
-            <Link href="/components/user-register" className="button-link">
+            <Link href="/components/user-register" className="btn btn-wide bg-yellow-400 rounded-full mt-6">
                 新規登録
             </Link>
         </div>

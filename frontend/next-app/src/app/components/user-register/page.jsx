@@ -38,9 +38,9 @@ export default function Register() {
   
 
     return (
-        <div className="container">
+        <div className="flex flex-col justify-center items-center mt-12 gap-4">
           <h1 className="title">アカウント登録</h1>
-          <form className="form" onSubmit={handleSubmit}>
+          <form className="form flex flex-col items-center" onSubmit={handleSubmit}>
             <input
               type="text"
               placeholder="ニックネーム"
@@ -65,7 +65,7 @@ export default function Register() {
               className="input-field"
               required
             />
-            <button type="submit" className="button">登録</button>
+            <button type="submit" className="btn btn-wide bg-yellow-400 rounded-full mt-6 mx-auto">登録</button>
           </form>
           {message && <p>{message}</p>}
         </div>
