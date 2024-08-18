@@ -9,7 +9,8 @@ export default function RegisterPet() {
     const [gender, setGender] = useState('オス');
     const [species, setSpecies] = useState('');
     const [birthdate, setBirthdate] = useState('');
-    const [profileImage, setProfileImage] = useState(null);
+    const [file, setFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null); // 画像プレビュー用のステートを追加
     const [message, setMessage] = useState('');
     const [userId, setUserId] = useState(null);
     const router = useRouter();
@@ -38,7 +39,7 @@ export default function RegisterPet() {
       formData.append('gender', gender);
       formData.append('species', species);
       formData.append('birthdate', birthdate);
-      formData.append('profile_image', profileImage);
+      formData.append('profile_image', file);
       formData.append('user_id', userId);
   
       try {
@@ -57,11 +58,17 @@ export default function RegisterPet() {
         console.error(error);
       }
     };
+
+    const handleFileChange = (e) => {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setFilePreview(URL.createObjectURL(selectedFile)); // 画像プレビュー用のURLをセット
+  };
   
     return (
-      <div className="container">
+      <div className="flex flex-col justify-center items-center mt-12 gap-4">
         <h1 className="title">ペット情報登録</h1>
-        <form className="form" onSubmit={handleSubmit}>
+        <form className="form form flex flex-col items-center" onSubmit={handleSubmit}>
           <input
             type="text"
             placeholder="ペットの名前"
@@ -96,10 +103,16 @@ export default function RegisterPet() {
           />
           <input
             type="file"
-            onChange={(e) => setProfileImage(e.target.files[0])}
+            onChange={handleFileChange}
             className="input-field"
+            accept="image/*"
           />
-          <button type="submit" className="button">登録</button>
+          {filePreview && (
+                    <div className="image-preview">
+                        <img src={filePreview} alt="Image Preview" className="preview-img" />
+                    </div>
+          )}
+          <button type="submit" className="btn btn-wide bg-yellow-400 rounded-full mt-6 mx-auto">登録</button>
         </form>
         {message && <p>{message}</p>}
       </div>
