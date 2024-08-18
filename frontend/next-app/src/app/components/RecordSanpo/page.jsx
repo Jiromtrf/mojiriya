@@ -11,6 +11,7 @@ export default function RecordSanpoPage() {
   const [date, setDate] = useState(dayjs());  // 日時をDay.jsオブジェクトで管理
   const [duration, setDuration] = useState('');
   const [photo, setPhoto] = useState(null);
+  const [preview, setPreview] = useState(null);  // プレビュー用のステートを追加
   const [message, setMessage] = useState('');
   const [petId, setPetId] = useState(null);
   const router = useRouter();  // useRouterフックを使用してルーターを取得
@@ -31,6 +32,20 @@ export default function RecordSanpoPage() {
         setMessage('エラーが発生しました。');
       });
   }, []);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setPhoto(file);
+
+    // プレビューを表示するための処理を追加
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,7 +79,7 @@ export default function RecordSanpoPage() {
 
   return (
     <div className="flex flex-col justify-center items-center gap-4">
-      <form className="form" onSubmit={handleSubmit}>
+      <form className="form flex flex-col items-center" onSubmit={handleSubmit}>
         <h1 className="text-2xl py-12">さんぽを記録</h1>
         <div className="mb-4">
           <DateTimePicker
@@ -76,20 +91,20 @@ export default function RecordSanpoPage() {
         </div>
 
         <label className="form-control w-full max-w-64 mt-4">
-        <div className="label">
-          <span className="label-text">さんぽ時間（分）</span>
-        </div>
-        <div>
-          <TextField
-            label="さんぽした分数を入力"
-            value={duration}
-            onChange={(e) => setDuration(e.target.value)}
-            fullWidth
-          />
-        </div>
+          <div className="label">
+            <span className="label-text">さんぽ時間（分）</span>
+          </div>
+          <div>
+            <TextField
+              label="さんぽした分数を入力"
+              value={duration}
+              onChange={(e) => setDuration(e.target.value)}
+              fullWidth
+            />
+          </div>
         </label>
 
-        <div className="mb-4">
+        <div className="mb-4 mt-4">
           <label className="form-control w-full max-w-xs">
             <div className="label">
               <span className="label-text">写真</span>
@@ -97,14 +112,25 @@ export default function RecordSanpoPage() {
             <input
               type="file"
               className="file-input file-input-bordered file-input-ghost w-full max-w-xs"
-              onChange={(e) => setPhoto(e.target.files[0])}
+              onChange={handlePhotoChange}  // 変更されたファイルに対応するように修正
             />
           </label>
         </div>
 
+        {/* 画像プレビュー表示 */}
+        {preview && (
+          <div className="image-preview mt-4">
+            <img src={preview} alt="プレビュー画像" className="max-w-full h-auto" />
+          </div>
+        )}
+
         <button className="btn btn-wide bg-yellow-400 rounded-full mt-6">保存</button>
       </form>
-      {message && <p  className="flex flex-col mr-40">{message}</p>}
+      {message && <p className="flex flex-col">{message}</p>}
+      <button
+        className="btn btn-outline mt-4"
+        onClick={() => router.back()}
+      >戻る</button>
     </div>
   );
 }

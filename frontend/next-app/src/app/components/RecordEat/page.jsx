@@ -9,8 +9,9 @@ import dayjs from 'dayjs';
 
 export default function RecordEatPage() {
   const [date, setDate] = useState(dayjs());  // 日時をDay.jsオブジェクトで管理
-  const [amount, setAmount] = useState('');
+  const [amount, setAmount] = useState('');  // 初期値を空に設定
   const [photo, setPhoto] = useState(null);
+  const [preview, setPreview] = useState(null);  // プレビュー用ステートを追加
   const [message, setMessage] = useState('');
   const [petId, setPetId] = useState(null);
   const router = useRouter();  // useRouterフックを使用してルーターを取得
@@ -31,6 +32,20 @@ export default function RecordEatPage() {
         setMessage('エラーが発生しました。');
       });
   }, []);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    setPhoto(file);
+
+    // プレビューを表示するための処理を追加
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,50 +79,61 @@ export default function RecordEatPage() {
   };
 
   return (
-    <div class="flex flex-col justify-center items-center gap-4">
-      <form className="form" onSubmit={handleSubmit}>
-      <h1 class="text-2xl py-12">ごはんを記録</h1>
-      <DateTimePicker
-        label="記録日時"
-        value={date}
-        onChange={(newValue) => setDate(newValue)}  // setDateを使用
-        renderInput={(params) => <TextField {...params} className="input-field" required />}
-      />
+    <div className="flex flex-col justify-center items-center gap-4">
+      <form className="form flex flex-col items-center" onSubmit={handleSubmit}>
+        <h1 className="text-2xl py-12">ごはんを記録</h1>
+        <DateTimePicker
+          label="記録日時"
+          value={date}
+          onChange={(newValue) => setDate(newValue)}  // setDateを使用
+          renderInput={(params) => <TextField {...params} className="input-field" required />}
+        />
 
-    <label class="form-control w-full max-w-64 mt-4">
-        <div class="label">
-         <span class="label-text">食べた量</span>
-        </div>
-     <select 
-       class="select select-bordered"
-       value={amount}  // amountの値を反映
-       onChange={(e) => setAmount(e.target.value)}  // 選択された値をamountに設定
-       name="amount"  // name属性を追加
-       required
-     >
-        <option disabled selected>選択してください</option>
-        <option value="完食">完食</option>
-        <option value="食べ残し">食べ残し</option>
-        <option value="食べない">食べない</option>
-    </select>
+        <label className="form-control w-full max-w-64 mt-4">
+          <div className="label">
+            <span className="label-text">食べた量</span>
+          </div>
+          <select
+            className="select select-bordered"
+            value={amount}  // amountの値を反映
+            onChange={(e) => setAmount(e.target.value)}  // 選択された値をamountに設定
+            name="amount"  // name属性を追加
+            required
+          >
+            <option value="" disabled>選択してください</option> {/* 初期値を空に設定 */}
+            <option value="完食">完食</option>
+            <option value="食べ残し">食べ残し</option>
+            <option value="食べない">食べない</option>
+          </select>
+        </label>
 
-</label>
+        <label className="form-control w-full max-w-xs mt-4">
+          <div className="label">
+            <span className="label-text">写真</span>
+          </div>
+          <input 
+            type="file" 
+            className="file-input file-input-bordered file-input-ghost w-full max-w-xs" 
+            onChange={handlePhotoChange}  // 選択されたファイルをphotoに設定
+            required
+          />
+        </label>
 
-      <label class="form-control w-full max-w-xs mt-4">
-         <div class="label">
-         <span class="label-text">写真</span>
-        </div>
-     <input 
-       type="file" 
-       class="file-input file-input-bordered file-input-ghost w-full max-w-xs" 
-       onChange={(e) => setPhoto(e.target.files[0])}  // 選択されたファイルをphotoに設定
-       required
-     />
-    </label>
+        {/* 画像プレビュー表示 */}
+        {preview && (
+          <div className="image-preview mt-4">
+            <img src={preview} alt="プレビュー画像" className="max-w-full h-auto" />
+          </div>
+        )}
 
-    <button class="btn btn-wide bg-yellow-400 rounded-full mt-6" type="submit">保存</button>
-  </form>
-   {message && <p className="flex flex-col mr-40">{message}</p>}
+        <button className="btn btn-wide bg-yellow-400 rounded-full mt-6" type="submit">保存</button>
+
+      </form>
+      {message && <p className="flex flex-col">{message}</p>}
+      <button
+        className="btn btn-outline mt-4"
+        onClick={() => router.back()}
+      >戻る</button>
     </div>
   );
 }
