@@ -36,9 +36,9 @@ export default function RecordCompletion() {
     <div className="flex flex-col justify-center items-center gap-4">
       <h1 className="text-2xl mt-40 font-bold" style={{ color: 'red' }}>登録完了</h1>
       <p className="text-2xl font-bold mt-10">葵さん</p> 
-      <p className="text-2xl font-bold">{activity}をありがとう！</p>
-      <p className="text-2xl font-bold">あなたのケアが愛犬にとって本当に大きな助けとなっています。</p>
-      <p className="text-2xl font-bold text-yellow-500">5PT獲得！</p>
+      <p className="text-2xl font-bold">{activity}ありがとう！</p>
+      <p className="text-2xl font-bold">モカはとっても嬉しいよ！</p>
+      <p className="text-2xl font-bold text-yellow-500">1PT獲得！</p>
       <button
         onClick={handleBackToTop}
         className="btn btn-wide bg-yellow-400 rounded-full mt-6"
