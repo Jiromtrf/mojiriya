@@ -47,7 +47,7 @@ const PhotoAlbum = () => {
         </div>
 
         <Link href="/components/PhotoSelect">
-          <button className="btn btn-primary z-40 absolute bottom-20 right-20">
+          <button className="btn btn-primary z-40 absolute bottom-20">
             写真を追加
           </button>
         </Link>

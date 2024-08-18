@@ -31,7 +31,7 @@ export default function TableOfRecords() {
       >
         表示
       </button>
-      <button class="btn btn-outline mt-4" onClick={() => router.back()}>戻る</button>
+      <button class="btn btn-ghost my-2 mt-5 rounded-full" onClick={() => router.back()}>戻る</button>
     </div>
   );
 }

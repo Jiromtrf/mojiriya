@@ -131,7 +131,7 @@ export default function RecordEatPage() {
       </form>
       {message && <p className="flex flex-col">{message}</p>}
       <button
-        className="btn btn-outline mt-4"
+        className="btn btn-ghost my-2 mt-5 rounded-full"
         onClick={() => router.back()}
       >戻る</button>
     </div>

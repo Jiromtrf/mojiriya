@@ -18,7 +18,7 @@ const handleDogArticleTopBackButtonClick = () => {
 
     <div class="w-72 shadow-xl mt-8">
      <img
-      src="/top.png"
+      src="/article_1.png"
       alt="dog" />
     </div>
 
