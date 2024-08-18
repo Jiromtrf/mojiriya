@@ -43,6 +43,10 @@ export default function MyDogTop() {
     router.push('/components/PhotoAlbum');  // 写真アルバムボタンをクリックしたときに遷移
   };
 
+  const handleCourseSelectionButtonClick = () => {
+    router.push('/components/CourseSelection');  // 写真アルバムボタンをクリックしたときに遷移
+  };
+
 
   return (
     <div class="flex flex-col justify-center items-center gap-4">
@@ -62,6 +66,7 @@ export default function MyDogTop() {
 
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-12" onClick={handleRecordButtonClick}>おせわを記録</button>
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-2" onClick={handlePhotoAlbumButtonClick}>写真アルバム</button>
+      <button class="btn btn-outline mt-4" onClick={handleCourseSelectionButtonClick}>コース選択にもどる</button>
     </div>
   )
 } 
