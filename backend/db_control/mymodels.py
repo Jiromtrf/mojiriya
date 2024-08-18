@@ -58,3 +58,19 @@ class Photo(Base):
     photo_id = Column(Integer, primary_key=True)
     upload_date = Column(String, default=lambda: datetime.now().strftime('%Y-%m-%d %H:%M'))
     photo_data = Column(LargeBinary)  # 画像データをバイナリ形式で保存
+
+# Dogテーブル（dog_data.db）のモデル
+"""class Dog(Base):
+    __tablename__ = "dogs"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    breed_jp = Column(String)
+    image = Column(String)
+    features = Column(String)
+    personality = Column(String)
+    sociability = Column(String)
+    size = Column(String)
+    color = Column(String)
+    weight = Column(String)
+    size_id = Column(Integer)
+    personality_id = Column(String)"""

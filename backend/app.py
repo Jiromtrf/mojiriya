@@ -15,10 +15,15 @@ import base64
 from sqlalchemy import func
 from datetime import datetime
 from flask import send_from_directory
+from sqlalchemy import text
+from db_control.connect import get_dog_data_db
 
 # Flaskアプリケーションのインスタンスを作成
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}}) 
+
+# dog_data.db専用のエンジンを取得
+dog_engine = get_dog_data_db()
 
 # データベースセッションの作成
 def get_db() -> Session:  # 型アノテーションを追加
@@ -332,6 +337,36 @@ def get_sanpo_records():
         } for record in records
     ])
 
+@app.route('/api/dog_search', methods=['POST'])
+def dog_search():
+    data = request.get_json()
+    personality_id = data['personalityId']
+    size_id = data['sizeId']
+
+    query = text("""
+        SELECT * FROM dogs
+        WHERE size_id = :size_id
+        AND (
+            personality_id LIKE :personality_id
+            OR personality_id LIKE :personality_id_with_comma
+        )
+    """)
+
+    # `dog_engine`を用いてデータベース接続を行う
+    with dog_engine.connect() as connection:
+        result = connection.execute(query, {
+            'size_id': size_id,
+            'personality_id': f"%{personality_id}%",
+            'personality_id_with_comma': f"%{personality_id},%"
+        })
+        dogs = [dict(zip(result.keys(), row)) for row in result]
+
+    # 各犬のデータに `image` フィールドが含まれていることを確認する
+    for dog in dogs:
+        if 'image' not in dog:
+            dog['image'] = None  # imageフィールドがない場合はNoneを設定
+
+    return jsonify(dogs)
 
 if __name__ == "__main__":
     app.run(debug=True)
