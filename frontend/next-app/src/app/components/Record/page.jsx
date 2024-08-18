@@ -30,7 +30,7 @@ export default function RecordPage() {
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-2" onClick={handleEatButtonClick}>ごはんを記録</button>
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-2" onClick={handleTableOfRecordsButtonClick}>記録一覧</button>
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-2" onClick={handlePointButtonClick}>おせわポイント</button>
-      <button class="btn btn-outline mt-4" onClick={() => router.back()}>戻る</button>
+      <button class="btn btn-ghost my-2 mt-5 rounded-full" onClick={() => router.back()}>戻る</button>
     </div>
     </div>
   )

@@ -66,7 +66,7 @@ export default function MyDogTop() {
 
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-12" onClick={handleRecordButtonClick}>おせわを記録</button>
       <button class="btn btn-wide bg-yellow-400 rounded-full mt-2" onClick={handlePhotoAlbumButtonClick}>写真アルバム</button>
-      <button class="btn btn-outline mt-4" onClick={handleCourseSelectionButtonClick}>コース選択にもどる</button>
+      <button class="btn btn-ghost my-2 mt-5 rounded-full" onClick={handleCourseSelectionButtonClick}>コース選択にもどる</button>
     </div>
   )
 } 

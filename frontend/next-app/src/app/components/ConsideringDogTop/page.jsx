@@ -30,7 +30,7 @@ const handleCourseSelectionBackButtonClick = () => {
 
 <div class="w-72 shadow-xl mt-8">
     <img
-      src="/top.png"
+      src="/considertop.png"
       alt="Shoes" />
 </div>
 
