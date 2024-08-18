@@ -1,5 +1,3 @@
-// component/login
-
 "use client";
 
 import { useState } from 'react';
@@ -26,9 +24,21 @@ export default function Login() {
         if (response.data.message === 'Login successful') {
           setMessage('Login successful');
           // ユーザーIDをlocalStorageに保存
-          localStorage.setItem('userId', response.data.user_id);
-          // ペット情報登録ページに遷移
-          router.push('/components/pet-register');
+          const userId = response.data.user_id;
+          localStorage.setItem('userId', userId);
+
+          // ペットが登録済みかどうかを確認
+          const petResponse = await axios.get('http://127.0.0.1:5000/get-pets', {
+            params: { user_id: userId },
+          });
+
+          if (petResponse.data.length > 0) {
+            // ペットが登録されている場合、MyDogTopページに遷移
+            router.push('/components/MyDogTop');
+          } else {
+            // ペットが登録されていない場合、ペット登録ページに遷移
+            router.push('/components/pet-register');
+          }
         } else {
           setMessage('Invalid credentials');
         }
