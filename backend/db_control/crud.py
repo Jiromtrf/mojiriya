@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from . import mymodels
 from datetime import datetime
+from sqlalchemy import or_, text
 
 # ユーザーの作成
 def create_user(db: Session, email: str, hashed_password: str, nickname: str):
@@ -86,3 +87,24 @@ def create_photo(db: Session, upload_date: str, photo_data: bytes):
     db.commit()
     db.refresh(db_photo)
     return db_photo
+
+# def get_dogs(db: Session, size_id: int, personality_id: str):
+#     sql = text("""
+#         SELECT * FROM dogs
+#         WHERE size_id = :size_id
+#         AND (
+#             personality_id = :personality_id
+#             OR personality_id LIKE :personality_id_with_comma
+#             OR personality_id LIKE :personality_id_prefix
+#             OR personality_id LIKE :personality_id_suffix
+#         )
+#     """)
+#     result = db.execute(sql, {
+#         'size_id': size_id,
+#         'personality_id': personality_id,
+#         'personality_id_with_comma': f'{personality_id},%',
+#         'personality_id_prefix': f'%,{personality_id}',
+#         'personality_id_suffix': f'%,{personality_id},%'
+#     })
+#     return result.fetchall()
+#     print(f"Results fetched: {results}")
